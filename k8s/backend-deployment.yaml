@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: ai-tickets
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: sairam2107/ai-ticket-classifier-backend:1.0
+        env:
+        - name: DB_HOST
+          value: "db"
+        envFrom:
+        - secretRef:
+            name: ai-app-secrets
+        ports:
+        - containerPort: 8000

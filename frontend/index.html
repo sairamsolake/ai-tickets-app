@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Ticket Portal</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+        h2 {
+            margin-top: 0;
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            margin-bottom: 15px;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: #0056b3;
+            box-shadow: 0 0 5px rgba(0, 86, 179, 0.2);
+        }
+        button {
+            width: 100%;
+            background-color: #0056b3;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #004494;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>IT Support Portal</h2>
+        <textarea id="query" rows="5" placeholder="Describe your IT issue here (e.g., I am locked out of my corporate email account)..."></textarea>
+        <button onclick="submitTicket()" id="submitBtn">Submit Ticket</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        async function submitTicket() {
+            const query = document.getElementById('query').value;
+            const resultDiv = document.getElementById('result');
+            const btn = document.getElementById('submitBtn');
+            
+            if(!query.trim()) {
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'error';
+                resultDiv.innerText = 'Please describe your issue first.';
+                return;
+            }
+
+            // Loading state
+            btn.innerText = 'Analyzing...';
+            btn.disabled = true;
+            resultDiv.style.display = 'none';
+
+            const apiUrl = `http://${window.location.hostname}:8000/api/tickets`;
+            
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query })
+                });
+                const data = await response.json();
+                
+                resultDiv.style.display = 'block';
+                if (response.ok) {
+                    resultDiv.className = 'success';
+                    resultDiv.innerText = `✅ Category: ${data.category} (Ticket #${data.id})`;
+                } else {
+                    resultDiv.className = 'error';
+                    resultDiv.innerText = `Error: ${data.detail}`;
+                }
+            } catch (error) {
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'error';
+                resultDiv.innerText = "Network Error: Make sure Port 8000 is open in your AWS Security Group.";
+            } finally {
+                // Reset button
+                btn.innerText = 'Submit Ticket';
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
